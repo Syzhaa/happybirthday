@@ -129,12 +129,6 @@
             font-weight: bold;
             color: var(--primary-color);
         }
-        #whatsapp-section {
-            display: none;
-            margin-top: 30px;
-            border-top: 2px solid #eee;
-            padding-top: 20px;
-        }
     </style>
 </head>
 <body>
@@ -208,17 +202,6 @@
                 <p id="loading-message">Sedang memproses... Mohon tunggu sebentar.</p>
                 <p id="success-message">Berhasil! File ucapan telah diunduh.</p>
                 
-                <div id="whatsapp-section">
-                    <hr style="margin: 40px 0; border: 1px solid #eee;">
-                    <h2>Langkah 4: Kirim Ucapanmu!</h2>
-                    <p>Sekarang, masukkan nomor WhatsApp tujuan dan klik kirim. <strong>PENTING: Jangan lupa untuk melampirkan (attach) file .html yang baru saja kamu unduh di dalam chat WhatsApp.</strong></p>
-                    <div class="form-group">
-                        <label for="wa-number">Nomor WhatsApp Tujuan</label>
-                        <input type="tel" id="wa-number" placeholder="Contoh: 628123456789" required>
-                    </div>
-                    <button type="button" id="btn-send-wa" class="action-button secondary-button">Kirim via WhatsApp</button>
-                </div>
-
             </form>
         </div>
     </div>
@@ -235,10 +218,6 @@
             const loadingMessage = document.getElementById('loading-message');
             const successMessage = document.getElementById('success-message');
             const btnGenerate = document.getElementById('btn-generate');
-            
-            const whatsappSection = document.getElementById('whatsapp-section');
-            const btnSendWa = document.getElementById('btn-send-wa');
-            const waNumberInput = document.getElementById('wa-number');
 
             const manualPesanToggle = document.getElementById('manual-pesan-toggle');
             const pesanStyleSelect = document.getElementById('pesan-style');
@@ -300,8 +279,9 @@
                 e.preventDefault();
                 loadingMessage.style.display = 'block';
                 successMessage.style.display = 'none';
-                whatsappSection.style.display = 'none';
                 btnGenerate.disabled = true;
+                loadingMessage.innerText = "Sedang memproses... Mohon tunggu sebentar.";
+
 
                 try {
                     let captions = [];
@@ -343,24 +323,12 @@
 
                     loadingMessage.style.display = 'none';
                     successMessage.style.display = 'block';
-                    whatsappSection.style.display = 'block';
                 } catch (error) {
                     console.error("Terjadi kesalahan:", error);
                     loadingMessage.innerText = `Gagal: ${error.message}. Mohon lengkapi semua data.`;
                 } finally {
                     btnGenerate.disabled = false;
                 }
-            });
-
-            btnSendWa.addEventListener('click', function() {
-                const phoneNumber = waNumberInput.value.replace(/\D/g, '');
-                if (!phoneNumber) {
-                    alert("Mohon masukkan nomor WhatsApp yang valid.");
-                    return;
-                }
-                const message = encodeURIComponent(`Hai! Aku sudah membuatkan ucapan ulang tahun spesial untukmu. Cek file HTML yang baru saja aku kirimkan ya! Buka di browser kamu.`);
-                const waUrl = `https://wa.me/${phoneNumber}?text=${message}`;
-                window.open(waUrl, '_blank');
             });
 
             function readFileAsBase64(file) {
