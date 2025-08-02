@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Ucapan Ulang Tahun</title>
+    <style>
+        :root {
+            --bg-color: #f4f5f7;
+            --text-color: #343a40;
+            --primary-color: #588157;
+            --heading-color: #3A5A40;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --heading-font: 'Georgia', serif;
+            --body-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: var(--body-font);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .page {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100%;
+        }
+        .page.active {
+            display: flex;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 40px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            width: 100%;
+        }
+        h1, h2 {
+            font-family: var(--heading-font);
+            color: var(--heading-color);
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="tel"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: white;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .photo-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .photo-card input[type="file"] {
+            margin-bottom: 10px;
+        }
+        .manual-caption-input {
+            display: none; /* Sembunyikan default */
+            margin-top: 10px;
+        }
+        .action-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+        .action-button:hover {
+            background-color: var(--heading-color);
+        }
+        .secondary-button {
+            background-color: #888;
+            margin-top: 15px;
+        }
+        .secondary-button:hover {
+            background-color: #666;
+        }
+        #loading-message, #success-message {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        #whatsapp-section {
+            display: none;
+            margin-top: 30px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="halaman-awal" class="page active">
+        <div class="container" style="text-align: center;">
+            <h1>Generator Ucapan Ulang Tahun</h1>
+            <p>Buat halaman web ucapan ulang tahun yang personal dan unik dalam sekejap!</p>
+            <br>
+            <button id="btn-ke-generator" class="action-button">Buat Ucapan Sekarang</button>
+            <button id="btn-lihat-demo" class="action-button secondary-button">Lihat Contoh Hasil</button>
+        </div>
+    </div>
+
+    <div id="halaman-generator" class="page">
+        <div class="container">
+            <form id="generator-form">
+                <h2>Langkah 1: Info Penerima</h2>
+                <div class="form-group">
+                    <label for="nama-penerima">Nama yang Berulang Tahun</label>
+                    <input type="text" id="nama-penerima" placeholder="Contoh: Budi" required>
+                </div>
+                <div class="form-group">
+                    <label for="tanggal-lahir">Tanggal Lahir</label>
+                    <input type="date" id="tanggal-lahir" required>
+                </div>
+
+                <hr style="margin: 40px 0; border: 1px solid #eee;">
+
+                <h2>Langkah 2: Isi Ucapan</h2>
+                <div class="form-group">
+                    <label for="judul-ucapan">Judul Utama</label>
+                    <input type="text" id="judul-ucapan" placeholder="Contoh: Selamat Ulang Tahun, Sahabat Terbaik!" required>
+                </div>
+                <div class="form-group">
+                    <label for="pesan-style">Pilih Gaya Pesan Otomatis</label>
+                    <select id="pesan-style">
+                        <option value="persahabatan">Persahabatan & Pertemanan</option>
+                        <option value="kasih-sayang">Kasih Sayang</option>
+                        <option value="lucu">Lucu & Jenaka</option>
+                    </select>
+                    <div class="toggle-group">
+                        <input type="checkbox" id="manual-pesan-toggle">
+                        <label for="manual-pesan-toggle">Tulis pesan manual</label>
+                    </div>
+                    <textarea id="pesan-ucapan" placeholder="Tulis ucapan dan doamu di sini..." style="display:none; margin-top: 10px;"></textarea>
+                </div>
+
+                <hr style="margin: 40px 0; border: 1px solid #eee;">
+
+                <h2>Langkah 3: Foto & Caption</h2>
+                 <div class="form-group">
+                    <label for="caption-style">Pilih Gaya Caption Otomatis</label>
+                    <select id="caption-style">
+                        <option value="persahabatan">Persahabatan & Pertemanan</option>
+                        <option value="kasih-sayang">Kasih Sayang</option>
+                        <option value="lucu">Lucu & Jenaka</option>
+                    </select>
+                    <div class="toggle-group">
+                        <input type="checkbox" id="manual-caption-toggle">
+                        <label for="manual-caption-toggle">Tulis caption manual</label>
+                    </div>
+                </div>
+                <div class="photo-grid">
+                    <!-- Foto 1-6 akan digenerate oleh JS -->
+                </div>
+
+                <hr style="margin: 40px 0; border: 1px solid #eee;">
+
+                <button type="submit" id="btn-generate" class="action-button">Buat Halaman Ucapan!</button>
+                <p id="loading-message">Sedang memproses... Mohon tunggu sebentar.</p>
+                <p id="success-message">Berhasil! File ucapan telah diunduh.</p>
+                
+                <div id="whatsapp-section">
+                    <hr style="margin: 40px 0; border: 1px solid #eee;">
+                    <h2>Langkah 4: Kirim Ucapanmu!</h2>
+                    <p>Sekarang, masukkan nomor WhatsApp tujuan dan klik kirim. <strong>PENTING: Jangan lupa untuk melampirkan (attach) file .html yang baru saja kamu unduh di dalam chat WhatsApp.</strong></p>
+                    <div class="form-group">
+                        <label for="wa-number">Nomor WhatsApp Tujuan</label>
+                        <input type="tel" id="wa-number" placeholder="Contoh: 628123456789" required>
+                    </div>
+                    <button type="button" id="btn-send-wa" class="action-button secondary-button">Kirim via WhatsApp</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const halamanAwal = document.getElementById('halaman-awal');
+            const halamanGenerator = document.getElementById('halaman-generator');
+            const btnKeGenerator = document.getElementById('btn-ke-generator');
+            const btnLihatDemo = document.getElementById('btn-lihat-demo');
+            
+            const form = document.getElementById('generator-form');
+            const photoGrid = document.querySelector('.photo-grid');
+            const loadingMessage = document.getElementById('loading-message');
+            const successMessage = document.getElementById('success-message');
+            const btnGenerate = document.getElementById('btn-generate');
+            
+            const whatsappSection = document.getElementById('whatsapp-section');
+            const btnSendWa = document.getElementById('btn-send-wa');
+            const waNumberInput = document.getElementById('wa-number');
+
+            const manualPesanToggle = document.getElementById('manual-pesan-toggle');
+            const pesanStyleSelect = document.getElementById('pesan-style');
+            const pesanTextarea = document.getElementById('pesan-ucapan');
+
+            const manualCaptionToggle = document.getElementById('manual-caption-toggle');
+            const captionStyleSelect = document.getElementById('caption-style');
+
+            btnKeGenerator.addEventListener('click', () => {
+                halamanAwal.classList.remove('active');
+                halamanGenerator.classList.add('active');
+            });
+
+            btnLihatDemo.addEventListener('click', async () => {
+                const demoData = {
+                    namaPenerima: 'Sahabat Terbaik',
+                    tanggalLahir: '2000-01-01',
+                    judulUcapan: 'Ini Adalah Contoh Hasil',
+                    pesanUcapan: 'Ini adalah contoh pesan yang dibuat secara otomatis. Kamu bisa membuat versimu sendiri dengan mengisi form yang ada!',
+                    captions: generateRandomCaptions('persahabatan'),
+                    photos: Array(6).fill(createPlaceholderImage())
+                };
+                const finalHtml = generateFinalHtml(demoData);
+                downloadHtml(finalHtml, 'contoh-ucapan.html');
+            });
+
+            for (let i = 1; i <= 6; i++) {
+                const card = document.createElement('div');
+                card.className = 'photo-card';
+                card.innerHTML = `
+                    <label for="foto-${i}">Foto ${i}</label>
+                    <input type="file" id="foto-${i}" accept="image/*" required>
+                    <div class="manual-caption-input" id="manual-caption-container-${i}">
+                        <label for="caption-${i}">Caption Foto ${i}</label>
+                        <input type="text" id="caption-${i}" placeholder="Tulis caption di sini...">
+                    </div>
+                `;
+                photoGrid.appendChild(card);
+            }
+
+            manualPesanToggle.addEventListener('change', function() {
+                const isManual = this.checked;
+                pesanTextarea.style.display = isManual ? 'block' : 'none';
+                pesanTextarea.required = isManual;
+                pesanStyleSelect.disabled = isManual;
+            });
+
+            manualCaptionToggle.addEventListener('change', function() {
+                const manualContainers = document.querySelectorAll('.manual-caption-input');
+                const isManual = this.checked;
+                manualContainers.forEach(container => {
+                    container.style.display = isManual ? 'block' : 'none';
+                    container.querySelector('input').required = isManual;
+                });
+                captionStyleSelect.disabled = isManual;
+            });
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                loadingMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+                whatsappSection.style.display = 'none';
+                btnGenerate.disabled = true;
+
+                try {
+                    let captions = [];
+                    if (manualCaptionToggle.checked) {
+                        for (let i = 1; i <= 6; i++) { captions.push(document.getElementById(`caption-${i}`).value); }
+                    } else {
+                        captions = generateRandomCaptions(captionStyleSelect.value);
+                    }
+                    
+                    let pesanUcapan = '';
+                    if (manualPesanToggle.checked) {
+                        pesanUcapan = pesanTextarea.value.replace(/\n/g, '<br>');
+                    } else {
+                        pesanUcapan = generateRandomMessage(pesanStyleSelect.value);
+                    }
+
+                    const data = {
+                        namaPenerima: document.getElementById('nama-penerima').value,
+                        tanggalLahir: document.getElementById('tanggal-lahir').value,
+                        judulUcapan: document.getElementById('judul-ucapan').value,
+                        pesanUcapan: pesanUcapan,
+                        captions: captions,
+                        photos: []
+                    };
+
+                    const photoPromises = [];
+                    for (let i = 1; i <= 6; i++) {
+                        const fileInput = document.getElementById(`foto-${i}`);
+                        if (fileInput.files.length > 0) {
+                            photoPromises.push(readFileAsBase64(fileInput.files[0]));
+                        } else {
+                            throw new Error(`Foto ${i} belum diunggah.`);
+                        }
+                    }
+
+                    data.photos = await Promise.all(photoPromises);
+                    const finalHtml = generateFinalHtml(data);
+                    downloadHtml(finalHtml, `ucapan-untuk-${data.namaPenerima.replace(/\s+/g, '-')}.html`);
+
+                    loadingMessage.style.display = 'none';
+                    successMessage.style.display = 'block';
+                    whatsappSection.style.display = 'block';
+                } catch (error) {
+                    console.error("Terjadi kesalahan:", error);
+                    loadingMessage.innerText = `Gagal: ${error.message}. Mohon lengkapi semua data.`;
+                } finally {
+                    btnGenerate.disabled = false;
+                }
+            });
+
+            btnSendWa.addEventListener('click', function() {
+                const phoneNumber = waNumberInput.value.replace(/\D/g, '');
+                if (!phoneNumber) {
+                    alert("Mohon masukkan nomor WhatsApp yang valid.");
+                    return;
+                }
+                const message = encodeURIComponent(`Hai! Aku sudah membuatkan ucapan ulang tahun spesial untukmu. Cek file HTML yang baru saja aku kirimkan ya! Buka di browser kamu.`);
+                const waUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+                window.open(waUrl, '_blank');
+            });
+
+            function readFileAsBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function downloadHtml(content, fileName) {
+                const blob = new Blob([content], { type: 'text/html' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            }
+            
+            function createPlaceholderImage() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 400;
+                canvas.height = 400;
+                const ctx = canvas.getContext('2d');
+                const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+                ctx.fillStyle = randomColor;
+                ctx.fillRect(0, 0, 400, 400);
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 30px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Contoh Foto', 200, 200);
+                return canvas.toDataURL();
+            }
+
+            function generateRandomMessage(style) {
+                const messages = {
+                    "persahabatan": "Selamat ulang tahun, partner in crime terbaik! Semoga di umur yang baru ini, semua mimpimu tercapai dan kita bisa bikin lebih banyak lagi kenangan gila bareng. Sehat dan bahagia selalu, ya!",
+                    "kasih-sayang": "Untuk orang paling spesial di hidupku, selamat ulang tahun. Terima kasih sudah menjadi cahaya dan sumber kebahagiaanku. Semoga hari-harimu selalu dipenuhi cinta dan tawa. Aku sayang kamu.",
+                    "lucu": "Happy birthday! Jangan dihitung umurnya, ntar pusing sendiri. Yang penting traktiran sama kadonya jangan sampai lupa, ya! Semoga makin bijak (dan makin lucu, tentunya). Wish you all the best!"
+                };
+                return messages[style];
+            }
+
+            function generateRandomCaptions(style) {
+                const allCaptions = {
+                    "persahabatan": [ "Momen tak terlupakan yang selalu bikin tersenyum.", "Salah satu hari terbaik yang pernah kita lewati bersama.", "Foto ini bukti betapa serunya petualangan kita.", "Terima kasih sudah menciptakan memori indah ini.", "Semoga kita bisa membuat lebih banyak kenangan seperti ini.", "Ingat hari ini? Penuh tawa dan cerita." ],
+                    "kasih-sayang": [ "Setiap momen bersamamu adalah anugerah terindah.", "Di sampingmu, aku merasa jadi versi terbaik diriku.", "Terima kasih untuk semua cinta dan dukunganmu.", "Kamu adalah alasan di balik senyumku di foto ini.", "Semoga cinta kita terus bertumbuh seiring waktu.", "Kenangan manis yang akan selalu kurindukan." ],
+                    "lucu": [ "Lihat! Kita pernah sekocak ini, lho.", "Entah gaya apa ini, yang penting kita bahagia.", "Definisi sebenarnya dari 'yang penting pede'.", "Di balik foto ini ada cerita lucu yang tak terlupakan.", "Muka boleh absurd, yang penting kenangannya seru.", "Kira-kira apa yang kita pikirkan saat itu, ya?" ]
+                };
+                return allCaptions[style].sort(() => 0.5 - Math.random());
+            }
+
+            function generateFinalHtml(data) {
+                return `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selamat Ulang Tahun, ${data.namaPenerima}!</title>
+    <style>
+        :root { --bg-color: #f4f5f7; --text-color: #343a40; --primary-color: #588157; --heading-color: #3A5A40; --card-bg: #ffffff; --shadow-color: rgba(0, 0, 0, 0.1); --heading-font: 'Georgia', serif; --body-font: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; }
+        body { font-family: var(--body-font); background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; }
+        .page { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; transition: opacity 0.5s ease, transform 0.5s ease; }
+        #halaman-countdown h1 { font-family: var(--heading-font); font-size: 2.5rem; margin-bottom: 20px; color: var(--heading-color); }
+        #timer { display: flex; gap: 15px; margin-top: 20px; width: 100%; max-width: 600px; }
+        .waktu { background-color: var(--card-bg); padding: 20px 10px; border-radius: 15px; box-shadow: 0 4px 15px var(--shadow-color); flex: 1; }
+        .waktu span { display: block; font-size: 3rem; font-weight: bold; color: var(--primary-color); }
+        .waktu p { font-size: 1rem; color: #888; }
+        .pesan-pribadi { background-color: var(--card-bg); padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px var(--shadow-color); max-width: 700px; margin: 0 auto; }
+        .pesan-pribadi h1 { font-family: var(--heading-font); font-size: 2.5rem; color: var(--heading-color); margin-bottom: 10px; }
+        .pesan-pribadi h2 { font-family: var(--body-font); font-size: 1.2rem; color: #777; margin-bottom: 20px; font-weight: normal; }
+        .pesan-pribadi p { font-family: var(--heading-font); font-style: italic; font-size: 1.2rem; }
+        .btn-lanjut { display: inline-block; margin-top: 30px; padding: 15px 30px; background-color: var(--primary-color); color: white; text-decoration: none; font-weight: bold; border-radius: 50px; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn-lanjut:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+        .gallery-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(255, 255, 255, 0.7); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: all 0.3s ease; color: var(--heading-color); }
+        .gallery-nav-btn:hover { background-color: white; transform: translateY(-50%) scale(1.1); }
+        #gallery-prev { left: 20px; } #gallery-next { right: 20px; }
+        .kartu-foto { display: none; background-color: var(--card-bg); border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px var(--shadow-color); width: 90%; max-width: 400px; animation: popIn 0.5s ease; }
+        .kartu-foto.active { display: block; }
+        .kartu-foto img { width: 100%; height: 400px; object-fit: cover; }
+        .kartu-foto p { padding: 20px; font-size: 1rem; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @media (max-width: 768px) { .waktu span { font-size: 2rem; } .waktu p { font-size: 0.8rem; } .pesan-pribadi h1 { font-size: 2rem; } .pesan-pribadi p { font-size: 1rem; } .gallery-nav-btn { width: 40px; height: 40px; font-size: 20px; } #gallery-prev { left: 10px; } #gallery-next { right: 10px; } }
+    </style>
+</head>
+<body>
+    <div id="halaman-countdown" class="page">
+        <h1>${data.judulUcapan}</h1>
+        <div id="timer">
+            <div class="waktu"><span id="hari">00</span><p>Hari</p></div>
+            <div class="waktu"><span id="jam">00</span><p>Jam</p></div>
+            <div class="waktu"><span id="menit">00</span><p>Menit</p></div>
+            <div class="waktu"><span id="detik">10</span><p>Detik</p></div>
+        </div>
+    </div>
+    <div id="halaman-ucapan" class="page" style="display: none;">
+        <div class="pesan-pribadi">
+            <h1>Untuk ${data.namaPenerima}</h1>
+            <h2 id="umur"></h2>
+            <p>"${data.pesanUcapan}"</p>
+            <button id="btn-ke-galeri" class="btn-lanjut">Lihat Kenangan Kita &#11015;</button>
+        </div>
+    </div>
+    <div id="halaman-galeri" class="page" style="display: none;">
+        <div id="gallery-content">
+            <!-- Kartu foto akan dimasukkan oleh JS -->
+        </div>
+        <button class="gallery-nav-btn" id="gallery-prev">&#10094;</button>
+        <button class="gallery-nav-btn" id="gallery-next">&#10095;</button>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const halamanCountdown = document.getElementById('halaman-countdown');
+            const halamanUcapan = document.getElementById('halaman-ucapan');
+            const halamanGaleri = document.getElementById('halaman-galeri');
+            const btnKeGaleri = document.getElementById('btn-ke-galeri');
+            const detikEl = document.getElementById('detik');
+            
+            const tanggalLahirStr = "${data.tanggalLahir}";
+            
+            function hitungUmur(tanggalLahir) {
+                const today = new Date();
+                const birthDate = new Date(tanggalLahir);
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
+                return age;
+            }
+            
+            document.getElementById('umur').innerText = 'Selamat Ulang Tahun yang ke-' + hitungUmur(tanggalLahirStr) + '!';
+
+            let detik = 10;
+            const interval = setInterval(() => {
+                detik--;
+                detikEl.innerText = detik < 10 ? '0' + detik : detik;
+                if (detik <= 0) {
+                    clearInterval(interval);
+                    halamanCountdown.style.display = 'none';
+                    halamanUcapan.style.display = 'flex';
+                }
+            }, 1000);
+
+            btnKeGaleri.addEventListener('click', () => {
+                halamanUcapan.style.opacity = '0';
+                halamanUcapan.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    halamanUcapan.style.display = 'none';
+                    halamanGaleri.style.display = 'flex';
+                    setupGallerySlider();
+                }, 500);
+            });
+
+            function setupGallerySlider() {
+                const galleryContent = document.getElementById('gallery-content');
+                const galleryPrevBtn = document.getElementById('gallery-prev');
+                const galleryNextBtn = document.getElementById('gallery-next');
+                const photos = ${JSON.stringify(data.photos)};
+                const captions = ${JSON.stringify(data.captions)};
+                let currentImageIndex = 0;
+
+                photos.forEach((photo, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'kartu-foto';
+                    card.innerHTML = \`<img src="\${photo}" alt="Foto \${index + 1}"><p>\${captions[index]}</p>\`;
+                    galleryContent.appendChild(card);
+                });
+                
+                const photoCards = galleryContent.querySelectorAll('.kartu-foto');
+
+                function showImage(index) {
+                    photoCards.forEach(card => card.classList.remove('active'));
+                    photoCards[index].classList.add('active');
+                    galleryPrevBtn.style.display = index === 0 ? 'none' : 'block';
+                    galleryNextBtn.style.display = index === photoCards.length - 1 ? 'none' : 'block';
+                }
+
+                galleryNextBtn.addEventListener('click', () => {
+                    if (currentImageIndex < photoCards.length - 1) {
+                        currentImageIndex++;
+                        showImage(currentImageIndex);
+                    }
+                });
+
+                galleryPrevBtn.addEventListener('click', () => {
+                    if (currentImageIndex > 0) {
+                        currentImageIndex--;
+                        showImage(currentImageIndex);
+                    }
+                });
+                
+                showImage(0);
+            }
+        });
+    <\/script>
+</body>
+</html>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
